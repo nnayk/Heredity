@@ -182,7 +182,6 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         Returns:
             Probability of 'has_trait' being true, given the number of genes.
         """
-        # return top level probability if parents not in dataset
         return PROBS["trait"][gene_count][has_trait]
 
     probabilities = []  # contains individual probabilities for each person
