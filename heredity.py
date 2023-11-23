@@ -128,7 +128,12 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         Returns:
             Probability of the person possessing the given number of genes.
         """
-        pass
+        mother_gene_count = get_gene_count(
+            people[person]["mother"], one_gene, two_genes
+        )
+        father_gene_count = get_gene_count(
+            people[person]["father"], one_gene, two_genes
+        )
 
     def _get_trait_probability(people, person, has_trait):
         """
@@ -143,10 +148,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         gene_count, has_trait = 0, False
         gene_probability = 0
         # set the gene value
-        if person in one_gene:
-            gene_count = 1
-        elif person in two_genes:
-            gene_count = 2
+        gene_count = get_gene_count(person, one_gene, two_genes)
         gene_probability = _get_gene_probability(people, person, gene_count)
         # set the trait value
         if person in have_trait:
@@ -154,6 +156,23 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         trait_probability = _get_trait_probability(people, person, has_trait)
         probabilities.append(gene_probability * trait_probability)
     return reduce(mul, probabilities, 1)
+
+
+def get_gene_count(person: str, one_gene: set, two_genes: set) -> int:
+    """
+    Args:
+        people: person name
+        one_gene: set of people w/1 gene
+        two_genes: set of people w/2 genes
+    Returns:
+        Gene count for the given person
+    """
+    if person in one_gene:
+        return 1
+    elif person in two_genes:
+        return 2
+    else:
+        return 0
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
