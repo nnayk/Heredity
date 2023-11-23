@@ -128,12 +128,50 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         Returns:
             Probability of the person possessing the given number of genes.
         """
+
+        def _get_pass_probability(gene_count: int) -> float:
+            """
+            Args:
+                gene_count: number of genes (0,1, or 2)
+
+            Returns:
+                Probability of passing the gene to the child.
+            """
+            if gene_count == 0:
+                return PROBS["mutation"]
+            elif gene_count == 1:
+                return 0.5 * (1 - PROBS["mutation"]) + 0.5 * PROBS["mutation"]
+            else:
+                return 1 - PROBS["mutation"]
+
+        # return top level probability if parents not in dataset
+        if (
+            people[person]["mother"] is None
+            and people[person]["father"] is None
+        ):
+            return PROBS["gene"][gene]
+        # get the gene count for the person's parents
         mother_gene_count = get_gene_count(
             people[person]["mother"], one_gene, two_genes
         )
         father_gene_count = get_gene_count(
             people[person]["father"], one_gene, two_genes
         )
+        mother_pass_probability = _get_pass_probability(
+            mother_gene_count
+        )  # probability of mother passing gene
+        father_pass_probability = _get_pass_probability(
+            father_gene_count
+        )  # probability of father passing gene
+        # calculate probability of person having the given number of genes
+        if gene == 0:
+            return (1 - mother_pass_probability) * (1 - father_pass_probability)
+        elif gene == 1:
+            return (1 - mother_pass_probability) * father_pass_probability + (
+                1 - father_pass_probability
+            ) * mother_pass_probability
+        else:
+            return mother_pass_probability * father_pass_probability
 
     def _get_trait_probability(people, person, has_trait):
         """
