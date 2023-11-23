@@ -1,44 +1,26 @@
 import csv
 import itertools
 import sys
+from operator import mul
+from functools import reduce
 
 PROBS = {
-
     # Unconditional probabilities for having gene
-    "gene": {
-        2: 0.01,
-        1: 0.03,
-        0: 0.96
-    },
-
+    "gene": {2: 0.01, 1: 0.03, 0: 0.96},
     "trait": {
-
         # Probability of trait given two copies of gene
-        2: {
-            True: 0.65,
-            False: 0.35
-        },
-
+        2: {True: 0.65, False: 0.35},
         # Probability of trait given one copy of gene
-        1: {
-            True: 0.56,
-            False: 0.44
-        },
-
+        1: {True: 0.56, False: 0.44},
         # Probability of trait given no gene
-        0: {
-            True: 0.01,
-            False: 0.99
-        }
+        0: {True: 0.01, False: 0.99},
     },
-
     # Mutation probability
-    "mutation": 0.01
+    "mutation": 0.01,
 }
 
 
 def main():
-
     # Check for proper usage
     if len(sys.argv) != 2:
         sys.exit("Usage: python heredity.py data.csv")
@@ -46,28 +28,19 @@ def main():
 
     # Keep track of gene and trait probabilities for each person
     probabilities = {
-        person: {
-            "gene": {
-                2: 0,
-                1: 0,
-                0: 0
-            },
-            "trait": {
-                True: 0,
-                False: 0
-            }
-        }
+        person: {"gene": {2: 0, 1: 0, 0: 0}, "trait": {True: 0, False: 0}}
         for person in people
     }
 
     # Loop over all sets of people who might have the trait
     names = set(people)
     for have_trait in powerset(names):
-
         # Check if current set of people violates known information
         fails_evidence = any(
-            (people[person]["trait"] is not None and
-             people[person]["trait"] != (person in have_trait))
+            (
+                people[person]["trait"] is not None
+                and people[person]["trait"] != (person in have_trait)
+            )
             for person in names
         )
         if fails_evidence:
@@ -76,7 +49,6 @@ def main():
         # Loop over all sets of people who might have the gene
         for one_gene in powerset(names):
             for two_genes in powerset(names - one_gene):
-
                 # Update probabilities with new joint probability
                 p = joint_probability(people, one_gene, two_genes, have_trait)
                 update(probabilities, one_gene, two_genes, have_trait, p)
@@ -110,8 +82,13 @@ def load_data(filename):
                 "name": name,
                 "mother": row["mother"] or None,
                 "father": row["father"] or None,
-                "trait": (True if row["trait"] == "1" else
-                          False if row["trait"] == "0" else None)
+                "trait": (
+                    True
+                    if row["trait"] == "1"
+                    else False
+                    if row["trait"] == "0"
+                    else None
+                ),
             }
     return data
 
@@ -122,7 +99,8 @@ def powerset(s):
     """
     s = list(s)
     return [
-        set(s) for s in itertools.chain.from_iterable(
+        set(s)
+        for s in itertools.chain.from_iterable(
             itertools.combinations(s, r) for r in range(len(s) + 1)
         )
     ]
@@ -139,7 +117,43 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         * everyone in set `have_trait` has the trait, and
         * everyone not in set` have_trait` does not have the trait.
     """
-    raise NotImplementedError
+
+    def _get_gene_probability(people: dict, person: str, gene: int) -> float:
+        """
+        Args:
+            people: dictionary of people data
+            person: specific person
+            gene: count of genes (0,1, or 2)
+
+        Returns:
+            Probability of the person possessing the given number of genes.
+        """
+        pass
+
+    def _get_trait_probability(people, person, has_trait):
+        """
+        Given a dictionary of people data, a specific person, and a specific
+        gene count, return the probability of the person possessing the given
+        number of genes
+        """
+        pass
+
+    probabilities = []  # contains individual probabilities for each person
+    for person in people:
+        gene_count, has_trait = 0, False
+        gene_probability = 0
+        # set the gene value
+        if person in one_gene:
+            gene_count = 1
+        elif person in two_genes:
+            gene_count = 2
+        gene_probability = _get_gene_probability(people, person, gene_count)
+        # set the trait value
+        if person in have_trait:
+            has_trait = True
+        trait_probability = _get_trait_probability(people, person, has_trait)
+        probabilities.append(gene_probability * trait_probability)
+    return reduce(mul, probabilities, 1)
 
 
 def update(probabilities, one_gene, two_genes, have_trait, p):
