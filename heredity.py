@@ -173,13 +173,17 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         else:
             return mother_pass_probability * father_pass_probability
 
-    def _get_trait_probability(people, person, has_trait):
+    def _get_trait_probability(gene_count, has_trait):
         """
-        Given a dictionary of people data, a specific person, and a specific
-        gene count, return the probability of the person possessing the given
-        number of genes
+        Args:
+            gene_count: number of genes (0,1, or 2)
+            has_trait: whether or not the person has the trait
+
+        Returns:
+            Probability of 'has_trait' being true, given the number of genes.
         """
-        pass
+        # return top level probability if parents not in dataset
+        return PROBS["trait"][gene_count][has_trait]
 
     probabilities = []  # contains individual probabilities for each person
     for person in people:
@@ -191,7 +195,7 @@ def joint_probability(people, one_gene, two_genes, have_trait):
         # set the trait value
         if person in have_trait:
             has_trait = True
-        trait_probability = _get_trait_probability(people, person, has_trait)
+        trait_probability = _get_trait_probability(gene_count, has_trait)
         probabilities.append(gene_probability * trait_probability)
     return reduce(mul, probabilities, 1)
 
